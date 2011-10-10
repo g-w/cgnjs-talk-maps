@@ -90,12 +90,12 @@
         this.data = data;
         this.length = length;
 
-        this.at = function(i) {
+        this.get = function(i) {
+            if (i >= this.length) {
+              return undefined;
+            }
             if (i > this.index[this.index.length - 1]) {
-                if (i < this.length) {
-                    return this.data[this.data.length - 1];
-                }
-                return undefined;
+              return this.data[this.data.length - 1];
             }
 
             var upper = (i < this.index.length ? i : this.index.length - 1);
@@ -105,7 +105,7 @@
                 if (lower === upper || lower + 1 === upper) {
                     return upper === i ? this.data.charAt(upper) : this.data.charAt(lower);
                 }
-                center = parseInt((upper + lower) / 2);
+                center = Math.floor((upper + lower) / 2);
                 if (this.index[center] < i) {
                     lower = center;
                 } else {
