@@ -331,7 +331,7 @@ this.onMouseMove = function(e) {
     var x = Math.floor((e.pageX - offsetX) * scale);
     var y = Math.floor((e.pageY - offsetY) * scale);
 
-    point = array.at(626 * y + x);
+    point = array.get(626 * y + x);
     if (point !== lastPoint) {
         if (point === '0') {
             hideOverlay();
