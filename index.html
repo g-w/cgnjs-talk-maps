@@ -286,23 +286,16 @@ data = context.getImageData(0,0, image.image.width, image.image.height).data;
 for(k = 0; k < image.image.height; k++) {
   for(l = 0; l < image.image.width; l++) {
     index = k * image.image.width + l;
-    if(data[(index) * 4 + 3] > 200) {
+    if(data[index * 4 + 3] > 200) {
       map[index] = code;
     }
   }
 }
 </pre>
-      </section>
 
-      <section class="slide">
-<pre>
+<pre class="delayed space2">
 var str = map.join('');
 var array = RangeEncodedArray.build(str);
-
-var js = "var mapData = (" + Map.serialize(mapObj) + ");";
-fs.writeFile(cwd + "/" + filename, js, function (err) {
-  ..
-});
 </pre>
       </section>
 
