@@ -57,3 +57,6 @@ section > h2.full-slide {
   text-align: center;
 }
 
+section > footer > .me {
+  margin: 1em 0;
+}
