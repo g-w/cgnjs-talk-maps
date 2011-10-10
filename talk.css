@@ -1,6 +1,14 @@
 
+.space2 {
+  margin-top: 2%
+}
+
 section > header.slide > h1.two-lines {
   margin-top: -1.1em;
+}
+
+section > section.slide > pre:first-child {
+  margin-top: 4%;
 }
 
 #intro {
@@ -52,6 +60,17 @@ section > h2.full-slide {
   left: 0;
   right: 0;
   margin-top: -.6em;
+  font-size: 400%;
+  line-height: 1;
+  text-align: center;
+}
+
+section > h2.full-slide-3 {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  margin-top: -1.6em;
   font-size: 400%;
   line-height: 1;
   text-align: center;

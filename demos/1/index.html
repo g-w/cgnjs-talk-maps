@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Canvas map highlight</title>
+
+    <style type="text/css" media="screen">
+      #map-container {
+        position: absolute;
+        height: 588px;
+        width: 625px;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      #rgb-container {
+        position: absolute;
+        top: 590px;
+
+      }
+
+      #canvas-container {
+        position: absolute;
+        top: 0;
+        left: 600px;
+      }
+
+      .highlight {
+        margin-left: -625px;
+      }
+    </style>
+    <script type="text/javascript" src="script.js"></script>
+  </head>
+
+  <body>
+    <div id="map-container">
+      <img src="map.png" alt="a map" id="map" />
+    </div>
+
+    <div id="canvas-container">
+      <canvas id="color-map" width="635" height="588">
+      </canvas>
+    </div>
+  </body>
+
+</html>

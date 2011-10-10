@@ -9,7 +9,7 @@
     <link href="theme.css" rel="stylesheet" />
     <link href="talk.css" rel="stylesheet" />
   </head>
-  <body data-duration="30">
+  <body data-duration="30" class="">
 
     <header id="intro" class="slide">
       <h1>
@@ -33,14 +33,13 @@
           <li class="delayed">Web application</li>
           <li class="delayed">Backend technologies: Java, Spring, Spring MVC</li>
           <li class="delayed">Required to support all commonly used browser incl. IE 7 and IE 8</li>
+          <li class="delayed">Maximal accessibility (WCAG 2.0, BITV)</li>
         </ul>
       </section>
 
       <section class="slide">
         <h2>The Problem</h2>
-        <ul>
-          <li class="delayed"></li>
-        </ul>
+        <img src="demos/1/map.png" style="width: 100%; heigth: auto;" alt="" />
       </section>
     </section>
 
@@ -54,14 +53,77 @@
 
       <section class="slide">
         <h2>The Idea</h2>
+        <p style="float:left;">Use color maps:</p>
+        <img src="demos/1/rgb.png" alt="" style="display: block; float: right; height: 60%; width: auto"/>
       </section>
 
       <section class="slide">
         <h2>The Implementation</h2>
+        <pre>
+window.onload = function () {
+  var canvas = document.getElementById("color-map");
+  var context = canvas.getContext("2d");
+
+  var rgb = new Image();
+  rgb.onload = function() {
+    context.drawImage(rgb, 0, 0);
+  };
+  rgb.src = "rgb.png";</pre>
       </section>
 
       <section class="slide">
-        <h2 class="two-lines">Demo</h2>
+        <pre>
+ var map = document.getElementById("map");
+ map.onmousemove = function(e) {
+  var x = e.pageX;
+  var y = e.pageY;
+
+  var data = context.getImageData(x, y, 1, 1).data;
+  if (data && data[0] && data[0] > 200) {
+    map.className = "highlight";
+  } else {
+    map.className = "";
+  }
+};
+</pre>
+      </section>
+
+      <section class="slide">
+        <h2 class="full-slide"><a href="demos/1" target="_blank">Demo</a></h2>
+      </section>
+
+    <section class="slide">
+      <h2 class="full-slide-3">We have to <br/> support <br/> IE 7 &amp; 8</h2>
+    </section>
+
+      <section class="slide">
+        <h2>Pollyfills?</h2>
+        <ul>
+          <li>
+            ExplorerCanvas
+            <ul>
+              <li>Based on VML</li>
+              <li>Code: <a href="http://code.google.com/p/explorercanvas/">http://code.google.com/p/explorercanvas/</a></li>
+              <li style="color: red;">Doesn't work (... for us)</li>
+            </ul>
+          </li>
+          <li>
+            FlashCanvas
+            <ul>
+              <li>Based on Flash</li>
+              <li>Code: <a href="http://flashcanvas.net/">http://flashcanvas.net/</a></li>
+              <li style="color: red;">It's flash</li>
+            </ul>
+          </li>
+          <li>
+            Silverlight HTML 5 Canvas
+            <ul>
+              <li>Based on Silverlight</li>
+              <li>Code: <a href="http://slcanvas.codeplex.com/">http://slcanvas.codeplex.com/</a></li>
+              <li style="color:red;">It's Silverlight</li>
+            </ul>
+          </li>
+        </ul>
       </section>
     </section>
 
@@ -73,53 +135,216 @@
       <section class="slide">
         <h2>The Idea</h2>
         <ul>
-          <li class="delayed">Use a second image to code the different shapes</li>
-          <li class="delayed">Use canvas to read colors from </li>
+          <li class="delayed">Read the color map on the server</li>
+          <li class="delayed">Encode the information to a string and compress it</li>
+          <li class="delayed">Send it to the client</li>
+          <li class="delayed">Decompress and decode it</li>
+          <li class="delayed">Use it as before</li>
         </ul>
       </section>
 
       <section class="slide">
-        <h2>The Implementation</h2>
+        <h2>Node Canvas</h2>
+        <ul>
+          <li>Canvas implementation in Node</li>
+          <li>Backed by cairo</li>
+          <li>Build by TJ Holowaychuk</li>
+          <li>Find it on <a href="https://github.com/LearnBoost/node-canvas">GitHub: https://github.com/LearnBoost/node-canvas</a></li>
+          <li>Or <code>> npm install node-canvas</code></li>
+        </ul>
+      </section>
+
+      <section class="slide">
+        <h2>Compressing Strings</h2>
+        <ul>
+          <li>
+            Huffman code
+            <ul>
+              <li>Theoretical best compression (in some sense ...)</li>
+              <li>Well known, widely used (JPEG, MPEG etc.) </li>
+              <li>Complex</li>
+            </ul>
+          </li>
+          <li class="delayed">
+            Range encoding
+            <ul>
+              <li>In worst case no compression</li>
+              <li>Well known, Not widely used</li>
+              <li>Easy to implement</li>
+            </ul>
+          </li>
+        </ul>
       </section>
 
       <section class="slide">
         <h2>RangeEncodedArray</h2>
+        <ul>
+          <li><strong>Input:</strong> "AAAADDDDDDXXXFFFFFFF"</li>
+          <li><strong>Output:</strong>
+            <ul>
+              <li>Index: [0, 4, 10, 13]</li>
+              <li>Data: "ADXF"</li>
+              <li>Length: 20</li>
+            </ul>
+          </li>
+        </ul>
+
+<pre class="delayed space2">
+function RangeEncodedArray(index, data, length) {
+  this.index = index;
+  this.data = data;
+  this.length = length;
+}
+</pre>
+      </section>
+
+      <section class="slide">
+        <h2>Get with Bisection</h2>
+<pre>
+RangeEncodedArray.prototype.get = function(i) {
+  // TODO: Handle borders
+
+  var center, lower = 0, upper = this.index.length;
+  while (true) {
+      if (lower === upper || lower + 1 === upper) {
+          return upper === i ? this.data.charAt(upper) : this.data.charAt(lower);
+      }
+      center = Math.floor((upper + lower) / 2);
+      if (this.index[center] < i) {
+          lower = center;
+      } else {
+          upper = center;
+      }
+  }
+};
+</pre>
+      </section>
+
+      <section class="slide">
         <pre>
-    var RangeEncodedArray = function(index, data, length) {
-        this.index = index;
-        this.data = data;
-        this.length = length;
+RangeEncodedArray.build = function(str) {
+  var length = str.length;
+  var index = [];
+  var data = '';
 
-        this.get = function(i) {
-            if (i >= this.length) {
-              return undefined;
-            }
-            if (i > this.index[this.index.length - 1]) {
-              return this.data[this.data.length - 1];
-            }
+  var currentChar = null;
+  for(var i = 0, c = str.charAt(0);
+      i < length;
+      i++, c = str.charAt(i)) {
+    if(currentChar !== c) {
+      index.push(i);
+      data += c;
+      currentChar = c;
+    }
+  }
 
-            var upper = (i < this.index.length ? i : this.index.length - 1);
-            var lower = 0;
-            var center;
-            while (true) {
-                if (lower === upper || lower + 1 === upper) {
-                    return upper === i ? this.data.charAt(upper) : this.data.charAt(lower);
-                }
-                center = Math.floor((upper + lower) / 2);
-                if (this.index[center] < i) {
-                    lower = center;
-                } else {
-                    upper = center;
-                }
-            }
-        };
-    };
-        </pre>
+  return new RangeEncodedArray(index, data, length);
+};</pre>
+      </section>
+
+      <section class="slide">
+        <h2>Map Builder</h2>
+<pre>
+var Canvas = require('canvas');
+var Image = Canvas.Image;
+var fs = require('fs');
+</pre>
+
+<pre class="delayed space2">
+fs.readFile(cwd + '/' + names[index], function(err, data) {
+  var image = new Image();
+  image.src = data;
+  images.push(image);
+});
+</pre>
 
       </section>
 
       <section class="slide">
-        <h2 class="full-slide">Demo</h2>
+
+<pre class="space2">
+for(i = 0; i < images.length; i++) {
+  image = images[i];
+  code = String.fromCharCode(65 + i);
+  mapping[code] = {
+    'image': image.id,
+    'code': code
+  };
+</pre>
+
+<pre class="delayed space2">
+canvas = new Canvas(image.image.width, image.image.height);
+context = canvas.getContext('2d');
+
+context.drawImage(image.image, 0, 0);
+data = context.getImageData(0,0, image.image.width, image.image.height).data;
+</pre>
+      </section>
+
+      <section class="slide">
+<pre>
+for(k = 0; k < image.image.height; k++) {
+  for(l = 0; l < image.image.width; l++) {
+    index = k * image.image.width + l;
+    if(data[(index) * 4 + 3] > 200) {
+      map[index] = code;
+    }
+  }
+}
+</pre>
+      </section>
+
+      <section class="slide">
+<pre>
+var str = map.join('');
+var array = RangeEncodedArray.build(str);
+
+var js = "var mapData = (" + Map.serialize(mapObj) + ");";
+fs.writeFile(cwd + "/" + filename, js, function (err) {
+  ..
+});
+</pre>
+      </section>
+
+      <section class="slide">
+        <h2>The Result</h2>
+<pre>
+var mapData = ({
+  "id":"germany",
+  "array": {
+    "length":384990,
+    "index":[0,132906,132907,133532, ..,356591],
+    "data":"0A0..0A0"},
+  "mapping":{"A": ..}
+});
+</pre>
+        <p>Size &asymp; 8k</p>
+      </section>
+
+      <section class="slide">
+        <h2>Client</h2>
+
+<pre>
+var array = mapData.array
+..
+this.onMouseMove = function(e) {
+    var x = Math.floor((e.pageX - offsetX) * scale);
+    var y = Math.floor((e.pageY - offsetY) * scale);
+
+    point = array.at(626 * y + x);
+    if (point !== lastPoint) {
+        if (point === '0') {
+            hideOverlay();
+        } else {
+            showOverlay(point);
+        }
+    }
+};
+</pre>
+      </section>
+
+      <section class="slide">
+        <h2 class="full-slide"><a href="demos/2/">Demo</a></h2>
       </section>
     </section>
 
@@ -144,22 +369,7 @@
 
     <script src="slideshow.js"></script>
     <script src="plugins/css-prefix.js"></script>
-    <script src="plugins/css-edit.js"></script>
-    <script src="plugins/css-snippets.js"></script>
     <script src="plugins/css-controls.js"></script>
-    <script>
-      var slideshow = new SlideShow();
-
-      var snippets = document.querySelectorAll('.snippet');
-      for(var i=0; i<snippets.length; i++) {
-                                      new CSSSnippet(snippets[i]);
-                                      }
-
-                                      var cssControls = document.querySelectorAll('.css-control');
-                                      for(var i=0; i<cssControls.length; i++) {
-                                                                         new CSSControl(cssControls[i]);
-                                                                         }
-                                                                         </script>
-
+    <script type="text/javascript" src="init.js"></script>
   </body>
 </html>
