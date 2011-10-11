@@ -73,16 +73,17 @@ window.onload = function () {
 
       <section class="slide">
         <pre>
- var map = document.getElementById("map");
- map.onmousemove = function(e) {
-  var x = e.pageX;
-  var y = e.pageY;
+  var map = document.getElementById("map");
+  map.onmousemove = function(e) {
+    var x = e.pageX;
+    var y = e.pageY;
 
-  var data = context.getImageData(x, y, 1, 1).data;
-  if (data && data[0] && data[0] > 200) {
-    map.className = "highlight";
-  } else {
-    map.className = "";
+    var data = context.getImageData(x, y, 1, 1).data;
+    if (data && data[0] && data[0] > 200) {
+      map.className = "highlight";
+    } else {
+      map.className = "";
+    }
   }
 };
 </pre>
@@ -157,27 +158,20 @@ window.onload = function () {
       <section class="slide">
         <h2>Compressing Strings</h2>
         <ul>
-          <li>
+          <li class="delayed">
             Huffman code
-            <ul>
-              <li>Theoretical best compression (in some sense ...)</li>
-              <li>Well known, widely used (JPEG, MPEG etc.) </li>
-              <li>Complex</li>
-            </ul>
           </li>
           <li class="delayed">
-            Range encoding
-            <ul>
-              <li>In worst case no compression</li>
-              <li>Well known, Not widely used</li>
-              <li>Easy to implement</li>
-            </ul>
+            Lempel–Ziv code
+          </li>
+          <li class="delayed">
+            Run length encoding
           </li>
         </ul>
       </section>
 
       <section class="slide">
-        <h2>RangeEncodedArray</h2>
+        <h2>Run length encoding</h2>
         <ul>
           <li><strong>Input:</strong> "AAAADDDDDDXXXFFFFFFF"</li>
           <li><strong>Output:</strong>
@@ -190,7 +184,7 @@ window.onload = function () {
         </ul>
 
 <pre class="delayed space2">
-function RangeEncodedArray(index, data, length) {
+function EncodedArray(index, data, length) {
   this.index = index;
   this.data = data;
   this.length = length;
@@ -201,7 +195,7 @@ function RangeEncodedArray(index, data, length) {
       <section class="slide">
         <h2>Get with Bisection</h2>
 <pre>
-RangeEncodedArray.prototype.get = function(i) {
+EncodedArray.prototype.get = function(i) {
   // TODO: Handle borders
 
   var center, lower = 0, upper = this.index.length;
@@ -222,7 +216,7 @@ RangeEncodedArray.prototype.get = function(i) {
 
       <section class="slide">
         <pre>
-RangeEncodedArray.build = function(str) {
+EncodedArray.build = function(str) {
   var length = str.length;
   var index = [];
   var data = '';
@@ -238,7 +232,7 @@ RangeEncodedArray.build = function(str) {
     }
   }
 
-  return new RangeEncodedArray(index, data, length);
+  return new EncodedArray(index, data, length);
 };</pre>
       </section>
 
@@ -295,7 +289,7 @@ for(k = 0; k < image.image.height; k++) {
 
 <pre class="delayed space2">
 var str = map.join('');
-var array = RangeEncodedArray.build(str);
+var array = EncodedArray.build(str);
 </pre>
       </section>
 
@@ -333,6 +327,26 @@ this.onMouseMove = function(e) {
         }
     }
 };
+</pre>
+      </section>
+
+      <section class="slide">
+        <h2>Draw it</h2>
+<pre>
+var array = EncodedArray.deserialize(mapData.array);
+var canvas = document.getElementById("canvas");
+var context = canvas.getContext("2d");
+var imageData = context.createImageData(626, 615);
+for (i = 0; i < 615; i++) {
+  for (j = 0; j < 626; j++) {
+    index = i * 626 + j;
+    if (array.get(index) === 'A') {
+      imageData.data[index * 4] = 255;
+      imageData.data[index * 4 + 3] = 255;
+    }
+  }
+}
+context.putImageData(imageData, 0, 0);
 </pre>
       </section>
 
